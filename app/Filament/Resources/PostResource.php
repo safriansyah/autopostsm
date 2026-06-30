@@ -29,7 +29,10 @@ class PostResource extends Resource
                             ->hint('Max 180 characters, total combined length with other fields must not exceed 275')
                             ->reactive(),
                         Forms\Components\FileUpload::make('image')
-                            ->image(),
+                            ->label('Image / Video')
+                            ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'video/mp4', 'video/quicktime'])
+                            ->maxSize(102400) // 100 MB
+                            ->helperText('Gambar (JPG/PNG/WebP) atau video (MP4/MOV). Video akan diposting sebagai Reels di Instagram.'),
                         Forms\Components\TextInput::make('site_url')
                             ->maxLength(255) // Individual max length, but dynamically validated
                             ->placeholder('Add a site URL e.g https://example.com')

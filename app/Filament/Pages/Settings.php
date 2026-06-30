@@ -253,102 +253,46 @@ class Settings extends Page
 
     public function saveTwitter(): void
     {
-        $data = $this->twitterForm->getState();
-
-        // Save the data to the database
-        foreach ($data as $key => $value) {
-            // Save the data to the database
-            Setting::updateOrCreate(['option_name' => $key], ['option_value' => $value]);
-        }
-
-        Notification::make()
-            ->title('Twitter API Credentials')
-            ->body('Your Twitter API credentials has been saved successfully.')
-            ->success()
-            ->send();
+        $this->persist($this->twitterForm->getState(), 'Twitter');
     }
 
     public function saveFacebook(): void
     {
-        $data = $this->facebookForm->getState();
-
-        // Save the data to the database
-        foreach ($data as $key => $value) {
-            // Save the data to the database
-            Setting::updateOrCreate(['option_name' => $key], ['option_value' => $value]);
-        }
-
-        Notification::make()
-            ->title('Facebook API Credentials')
-            ->body('Your Facebook API credentials has been saved successfully.')
-            ->success()
-            ->send();
+        $this->persist($this->facebookForm->getState(), 'Facebook');
     }
 
     public function saveLinkedin(): void
     {
-        $data = $this->linkedinForm->getState();
-
-        // Save the data to the database
-        foreach ($data as $key => $value) {
-            // Save the data to the database
-            Setting::updateOrCreate(['option_name' => $key], ['option_value' => $value]);
-        }
-
-        Notification::make()
-            ->title('LinkedIn API Credentials')
-            ->body('Your LinkedIn API credentials has been saved successfully.')
-            ->success()
-            ->send();
+        $this->persist($this->linkedinForm->getState(), 'LinkedIn');
     }
 
     public function saveInstagram(): void
     {
-        $data = $this->instagramForm->getState();
-
-        // Save the data to the database
-        foreach ($data as $key => $value) {
-            // Save the data to the database
-            Setting::updateOrCreate(['option_name' => $key], ['option_value' => $value]);
-        }
-
-        Notification::make()
-            ->title('Instagram API Credentials')
-            ->body('Your Instagram API credentials has been saved successfully.')
-            ->success()
-            ->send();
+        $this->persist($this->instagramForm->getState(), 'Instagram');
     }
 
     public function saveTiktok(): void
     {
-        $data = $this->tiktokForm->getState();
-
-        // Save the data to the database
-        foreach ($data as $key => $value) {
-            // Save the data to the database
-            Setting::updateOrCreate(['option_name' => $key], ['option_value' => $value]);
-        }
-
-        Notification::make()
-            ->title('TikTok API Credentials')
-            ->body('Your TikTok API credentials has been saved successfully.')
-            ->success()
-            ->send();
+        $this->persist($this->tiktokForm->getState(), 'TikTok');
     }
 
     public function saveWhatsapp(): void
     {
-        $data = $this->whatsappForm->getState();
+        $this->persist($this->whatsappForm->getState(), 'WhatsApp');
+    }
 
-        // Save the data to the database
+    /**
+     * Persist a platform's settings and notify the user.
+     */
+    protected function persist(array $data, string $platform): void
+    {
         foreach ($data as $key => $value) {
-            // Save the data to the database
             Setting::updateOrCreate(['option_name' => $key], ['option_value' => $value]);
         }
 
         Notification::make()
-            ->title('WhatsApp API Credentials')
-            ->body('Your WhatsApp API credentials has been saved successfully.')
+            ->title("{$platform} API Credentials")
+            ->body("Your {$platform} API credentials has been saved successfully.")
             ->success()
             ->send();
     }
