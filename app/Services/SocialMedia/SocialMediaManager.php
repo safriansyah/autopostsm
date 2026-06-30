@@ -36,6 +36,25 @@ class SocialMediaManager
     }
 
     /**
+     * Platforms with real credentials configured (connected accounts),
+     * as [key => name] — used to populate the post target selector.
+     *
+     * @return array<string, string>
+     */
+    public function availablePlatforms(): array
+    {
+        $platforms = [];
+
+        foreach ($this->publishers as $publisher) {
+            if ($publisher->isConfigured()) {
+                $platforms[$publisher->key()] = $publisher->name();
+            }
+        }
+
+        return $platforms;
+    }
+
+    /**
      * Publish a post to every enabled platform it hasn't been posted to yet.
      *
      * Each platform is isolated: a failure is logged and the others continue.

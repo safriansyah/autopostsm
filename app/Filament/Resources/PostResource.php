@@ -72,8 +72,14 @@ class PostResource extends Resource
                                 };
                             }),
                     ]),
-                    Forms\Components\Section::make([
+                    Forms\Components\Section::make('Publikasi')->schema([
+                        Forms\Components\CheckboxList::make('platforms')
+                            ->label('Posting ke')
+                            ->options(fn (): array => app(\App\Services\SocialMedia\SocialMediaManager::class)->availablePlatforms())
+                            ->required()
+                            ->helperText('Pilih akun sosmed aktif yang dituju. Hubungkan akun baru di halaman Settings.'),
                         Forms\Components\DateTimePicker::make('published_at')
+                            ->label('Jadwal terbit')
                             ->required()
                             ->seconds(false)
                             ->default(now()),
@@ -86,7 +92,11 @@ class PostResource extends Resource
     {
         return $table
             ->columns([
+                Tables\Columns\ViewColumn::make('media')
+                    ->label('Media')
+                    ->view('filament.tables.columns.media-preview'),
                 Tables\Columns\TextColumn::make('description')
+                    ->label('Deskripsi')
                     ->searchable()
                     ->limit(50)
                     ->tooltip(function (Tables\Columns\TextColumn $column): ?string {
@@ -99,25 +109,28 @@ class PostResource extends Resource
                         // Only render the tooltip if the column content exceeds the length limit.
                         return $state;
                     }),
-                Tables\Columns\ImageColumn::make('image'),
-                Tables\Columns\TextColumn::make('site_url')
-                    ->searchable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\BooleanColumn::make('is_posted'),
-                Tables\Columns\BooleanColumn::make('is_posted_to_twitter')->label('X'),
-                Tables\Columns\BooleanColumn::make('is_posted_to_facebook')->label('FB'),
-                Tables\Columns\BooleanColumn::make('is_posted_to_whatsapp')->label('WA'),
-                Tables\Columns\BooleanColumn::make('is_posted_to_instagram')->label('IG'),
-                Tables\Columns\BooleanColumn::make('is_posted_to_linkedin')->label('LI'),
-                Tables\Columns\BooleanColumn::make('is_posted_to_tiktok')->label('TK'),
+                Tables\Columns\TextColumn::make('platforms')
+                    ->label('Sosmed')
+                    ->badge()
+                    ->color('info')
+                    ->formatStateUsing(fn (string $state): string => ucfirst($state))
+                    ->placeholder('—'),
+                Tables\Columns\TextColumn::make('status')
+                    ->label('Status')
+                    ->badge()
+                    ->getStateUsing(fn (Post $record): string => $record->is_posted
+                        ? 'Terbit'
+                        : (($record->published_at && $record->published_at->isPast()) ? 'Diproses' : 'Terjadwal'))
+                    ->color(fn (string $state): string => match ($state) {
+                        'Terbit' => 'success',
+                        'Diproses' => 'warning',
+                        default => 'gray',
+                    }),
                 Tables\Columns\TextColumn::make('published_at')
-                    ->dateTime('F j, Y g:i A')
+                    ->label('Jadwal Terbit')
+                    ->dateTime('d M Y, H:i')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('updated_at')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),

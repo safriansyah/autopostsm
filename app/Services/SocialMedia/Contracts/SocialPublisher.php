@@ -18,6 +18,9 @@ interface SocialPublisher
     /** Whether auto-posting to this platform is enabled (setting or env). */
     public function isEnabled(): bool;
 
+    /** Whether real credentials are configured (a connected account). */
+    public function isConfigured(): bool;
+
     /**
      * Publish the given post to the platform.
      *

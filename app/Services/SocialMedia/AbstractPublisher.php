@@ -19,6 +19,13 @@ abstract class AbstractPublisher implements SocialPublisher
         return filter_var($raw, FILTER_VALIDATE_BOOLEAN);
     }
 
+    public function isConfigured(): bool
+    {
+        $token = $this->setting($this->key() . '_access_token', strtoupper($this->key()) . '_ACCESS_TOKEN');
+
+        return ! empty($token) && ! str_starts_with($token, 'your_');
+    }
+
     /**
      * Read a value from the settings table, falling back to an env var.
      */

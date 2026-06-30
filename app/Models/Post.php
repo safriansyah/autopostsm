@@ -10,9 +10,13 @@ class Post extends Model
 {
     use HasTags;
 
+    /** All platforms the app knows about. */
+    public const PLATFORMS = ['twitter', 'facebook', 'linkedin', 'instagram', 'tiktok', 'whatsapp'];
+
     protected $fillable = [
         'description',
         'image',
+        'platforms',
         'site_url',
         'is_posted',
         'is_posted_to_twitter',
@@ -26,6 +30,7 @@ class Post extends Model
 
     protected $casts = [
         'published_at'           => 'datetime',
+        'platforms'              => 'array',
         'is_posted'              => 'boolean',
         'is_posted_to_twitter'   => 'boolean',
         'is_posted_to_facebook'  => 'boolean',
@@ -34,6 +39,30 @@ class Post extends Model
         'is_posted_to_tiktok'    => 'boolean',
         'is_posted_to_whatsapp'  => 'boolean',
     ];
+
+    /**
+     * Translate selected target platforms into the is_posted_to_* flags.
+     * Platforms NOT selected are marked "true" so the publisher skips them;
+     * selected platforms keep any existing posted state (false by default).
+     *
+     * @param  array<int, string>  $selected
+     * @param  array<string, bool>  $existing  current flag values (for edits)
+     * @return array<string, bool>
+     */
+    public static function flagsForPlatforms(array $selected, array $existing = []): array
+    {
+        $flags = [];
+
+        foreach (self::PLATFORMS as $key) {
+            $column = "is_posted_to_{$key}";
+
+            $flags[$column] = in_array($key, $selected, true)
+                ? (bool) ($existing[$column] ?? false)
+                : true;
+        }
+
+        return $flags;
+    }
 
     /**
      * Posts that are due and still pending on at least one platform.
