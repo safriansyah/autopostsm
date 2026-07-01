@@ -18,6 +18,14 @@ class SocialMediaManager
     /** @var SocialPublisher[] */
     protected array $publishers;
 
+    /**
+     * Raw (un-humanized) error messages from the most recent publishPost() call,
+     * e.g. ["Instagram: {full API response}"]. Useful for on-screen diagnostics.
+     *
+     * @var array<int, string>
+     */
+    public array $rawErrors = [];
+
     public function __construct()
     {
         $this->publishers = [
@@ -65,6 +73,7 @@ class SocialMediaManager
     {
         $anySuccess = false;
         $errors = [];
+        $this->rawErrors = [];
 
         foreach ($this->publishers as $publisher) {
             $column = $publisher->flagColumn();
@@ -80,6 +89,7 @@ class SocialMediaManager
                 Log::info("Post ID {$post->id} posted to {$publisher->name()}.");
             } catch (\Throwable $e) {
                 $errors[] = $publisher->name() . ': ' . $this->humanizeError($e->getMessage());
+                $this->rawErrors[] = $publisher->name() . ': ' . $e->getMessage();
                 Log::error("Error posting Post ID {$post->id} to {$publisher->name()}: " . $e->getMessage());
             }
         }

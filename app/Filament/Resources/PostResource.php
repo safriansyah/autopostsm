@@ -167,7 +167,8 @@ class PostResource extends Resource
                     ->modalDescription('Post akan langsung dikirim ke platform tujuan tanpa menunggu jadwal.')
                     ->visible(fn (Post $record): bool => ! $record->is_posted)
                     ->action(function (Post $record): void {
-                        app(SocialMediaManager::class)->publishPost($record, $record->caption());
+                        $manager = app(SocialMediaManager::class);
+                        $manager->publishPost($record, $record->caption());
                         $record->refresh();
 
                         if ($record->is_posted || empty($record->last_error)) {
@@ -178,7 +179,7 @@ class PostResource extends Resource
                         } else {
                             Notification::make()
                                 ->title('Gagal memposting')
-                                ->body($record->last_error)
+                                ->body($record->last_error . "\n\nDetail: " . implode(' | ', $manager->rawErrors))
                                 ->danger()
                                 ->persistent()
                                 ->send();
