@@ -10,6 +10,8 @@ use Filament\Tables\Table;
 use Filament\Resources\Resource;
 use Illuminate\Database\Eloquent\Builder;
 use App\Filament\Resources\PostResource\Pages;
+use App\Services\SocialMedia\SocialMediaManager;
+use Filament\Notifications\Notification;
 
 class PostResource extends Resource
 {
@@ -156,6 +158,32 @@ class PostResource extends Resource
                 //
             ])
             ->actions([
+                Tables\Actions\Action::make('postNow')
+                    ->label('Post Now')
+                    ->icon('heroicon-m-paper-airplane')
+                    ->color('primary')
+                    ->requiresConfirmation()
+                    ->modalHeading('Posting sekarang?')
+                    ->modalDescription('Post akan langsung dikirim ke platform tujuan tanpa menunggu jadwal.')
+                    ->visible(fn (Post $record): bool => ! $record->is_posted)
+                    ->action(function (Post $record): void {
+                        app(SocialMediaManager::class)->publishPost($record, $record->caption());
+                        $record->refresh();
+
+                        if ($record->is_posted || empty($record->last_error)) {
+                            Notification::make()
+                                ->title('Berhasil diposting')
+                                ->success()
+                                ->send();
+                        } else {
+                            Notification::make()
+                                ->title('Gagal memposting')
+                                ->body($record->last_error)
+                                ->danger()
+                                ->persistent()
+                                ->send();
+                        }
+                    }),
                 Tables\Actions\EditAction::make()->label(''),
                 Tables\Actions\DeleteAction::make()->label(''),
             ])

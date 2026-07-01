@@ -117,8 +117,10 @@ class SocialMediaManager
                 'Masalah sertifikat SSL di server.'],
             [['Incomplete settings'],
                 'Kredensial belum lengkap — periksa di halaman Settings.'],
-            [['access token', 'OAuthException', '"code":190', 'expired', 'kedaluwarsa'],
-                'Token akun tidak valid atau kedaluwarsa — perbarui di halaman Settings.'],
+            [['cannot parse access token', 'could not be decrypted', 'malformed'],
+                'Token Instagram tidak terbaca — kemungkinan salah/terpotong. Isi ulang di halaman Settings.'],
+            [['access token', 'OAuthException', '"code":190', 'expired', 'kedaluwarsa', 'session'],
+                'Token Instagram tidak valid atau kedaluwarsa — isi ulang token di halaman Settings.'],
         ];
 
         foreach ($map as [$needles, $friendly]) {
