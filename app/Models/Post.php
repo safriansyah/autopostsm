@@ -17,6 +17,8 @@ class Post extends Model
         'description',
         'image',
         'platforms',
+        'last_error',
+        'last_attempt_at',
         'site_url',
         'is_posted',
         'is_posted_to_twitter',
@@ -30,6 +32,7 @@ class Post extends Model
 
     protected $casts = [
         'published_at'           => 'datetime',
+        'last_attempt_at'        => 'datetime',
         'platforms'              => 'array',
         'is_posted'              => 'boolean',
         'is_posted_to_twitter'   => 'boolean',

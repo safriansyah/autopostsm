@@ -11,6 +11,7 @@ use App\Services\SocialMedia\Publishers\TikTokPublisher;
 use App\Services\SocialMedia\Publishers\TwitterPublisher;
 use App\Services\SocialMedia\Publishers\WhatsAppPublisher;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class SocialMediaManager
 {
@@ -63,6 +64,7 @@ class SocialMediaManager
     public function publishPost(Post $post, string $caption): bool
     {
         $anySuccess = false;
+        $errors = [];
 
         foreach ($this->publishers as $publisher) {
             $column = $publisher->flagColumn();
@@ -77,10 +79,13 @@ class SocialMediaManager
                 $anySuccess = true;
                 Log::info("Post ID {$post->id} posted to {$publisher->name()}.");
             } catch (\Throwable $e) {
+                $errors[] = $publisher->name() . ': ' . $this->humanizeError($e->getMessage());
                 Log::error("Error posting Post ID {$post->id} to {$publisher->name()}: " . $e->getMessage());
             }
         }
 
+        $post->last_attempt_at = now();
+        $post->last_error = empty($errors) ? null : implode("\n", $errors);
         $post->save();
 
         // Mark the post fully done once every platform flag is set.
@@ -88,10 +93,42 @@ class SocialMediaManager
 
         if ($allDone && ! $post->is_posted) {
             $post->is_posted = true;
+            $post->last_error = null;
             $post->save();
             Log::info("Post ID {$post->id} posted to all platforms.");
         }
 
         return $anySuccess;
+    }
+
+    /**
+     * Turn a raw API error into a short, human-friendly Indonesian message.
+     */
+    protected function humanizeError(string $message): string
+    {
+        $map = [
+            [['could not be retrieved', 'tidak dapat diambil', 'URI media', '2207052', '9004'],
+                'Media tidak terjangkau dari internet — pastikan APP_URL memakai domain publik (bukan localhost).'],
+            [['Media ID is not available', '2207027', 'belum siap'],
+                'Media masih diproses Instagram — akan dicoba lagi otomatis.'],
+            [['requires an image', 'requires an image or video'],
+                'Instagram membutuhkan gambar atau video.'],
+            [['SSL certificate'],
+                'Masalah sertifikat SSL di server.'],
+            [['Incomplete settings'],
+                'Kredensial belum lengkap — periksa di halaman Settings.'],
+            [['access token', 'OAuthException', '"code":190', 'expired', 'kedaluwarsa'],
+                'Token akun tidak valid atau kedaluwarsa — perbarui di halaman Settings.'],
+        ];
+
+        foreach ($map as [$needles, $friendly]) {
+            foreach ($needles as $needle) {
+                if (stripos($message, $needle) !== false) {
+                    return $friendly;
+                }
+            }
+        }
+
+        return Str::limit(trim($message), 140);
     }
 }

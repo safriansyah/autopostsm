@@ -120,12 +120,29 @@ class PostResource extends Resource
                     ->badge()
                     ->getStateUsing(fn (Post $record): string => $record->is_posted
                         ? 'Terbit'
-                        : (($record->published_at && $record->published_at->isPast()) ? 'Diproses' : 'Terjadwal'))
+                        : ($record->last_error
+                            ? 'Gagal'
+                            : (($record->published_at && $record->published_at->isPast()) ? 'Diproses' : 'Terjadwal')))
+                    ->icon(fn (string $state): string => match ($state) {
+                        'Terbit' => 'heroicon-m-check-circle',
+                        'Gagal' => 'heroicon-m-x-circle',
+                        'Diproses' => 'heroicon-m-arrow-path',
+                        default => 'heroicon-m-clock',
+                    })
                     ->color(fn (string $state): string => match ($state) {
                         'Terbit' => 'success',
+                        'Gagal' => 'danger',
                         'Diproses' => 'warning',
                         default => 'gray',
-                    }),
+                    })
+                    ->tooltip(fn (Post $record): ?string => $record->last_error),
+                Tables\Columns\TextColumn::make('last_error')
+                    ->label('Keterangan')
+                    ->color('danger')
+                    ->wrap()
+                    ->limit(70)
+                    ->tooltip(fn (Post $record): ?string => $record->last_error)
+                    ->placeholder('—'),
                 Tables\Columns\TextColumn::make('published_at')
                     ->label('Jadwal Terbit')
                     ->dateTime('d M Y, H:i')
